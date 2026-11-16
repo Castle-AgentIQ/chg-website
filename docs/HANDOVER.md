@@ -16,6 +16,8 @@ Everything in this folder is the complete, working site. There is no build step 
       portfolio.html         The portfolio teaser, matching the one-page PDF (noindex); links to the NDA and the PDF download
       nda.html               Non-disclosure agreement with typed e-signature → POST /api/nda (noindex)
       files/                 Vitae-Investments-Sussex-Portfolio.pdf — the downloadable teaser
+    portfolio-site/          The Vitae portfolio landing page moved from Netlify (index.html, nda.html), served by the Worker
+                             only at https://portfolio.chg.global
     gated/                   NOT public. portfolio-details.html is the property schedule, served by the Worker at
                              /portfolio/details only to signed visitors; nda.txt is the agreement wording emailed to signers
       privacy.html           Privacy notice (noindex)
@@ -94,7 +96,7 @@ The email arrives from `enquiries@chg.global` with reply-to set to the enquirer,
 
 ## 5. The portfolio: teaser, NDA, schedule, pack
 
-The former Innovation Capital site (innovationcapital.netlify.app) has been folded into chg.global and redirects here.
+The former Innovation Capital landing page (innovationcapital.netlify.app) has been moved here unchanged and is served at **https://portfolio.chg.global** (16 Nov 2026): `portfolio-site/index.html` at "/" and `portfolio-site/nda.html` at "/nda", byte for byte as they were on Netlify, with their forms still posting to Formspree. The Worker serves them only for that hostname (`servePortfolio` in worker.js), so they are not reachable on chg.global, and `run_worker_first = true` lets it see every request for that host; for chg.global everything else still falls through to the static assets unchanged. The Netlify address is no longer used.
 
 - **Public teaser** — `public/portfolio.html` is the one-page PDF as a web page, plus the PDF itself under `public/files/`. Keep it to what the PDF says: aggregate figures and towns, no addresses, no valuations, no rent or yield.
 - **NDA** — `public/nda.html`. Same wording as the Innovation Capital agreement (Vitae Investments Ltd as disclosing party, Innovation Capital Ltd as adviser, two years, England and Wales). If the wording changes, change `gated/nda.txt` too (it is what gets emailed) and bump `NDA_VERSION` in worker.js. Signing stores `nda:<time>:<id>` in KV with name, signature, title, organisation, email, time, IP, country and user agent, emails `PORTFOLIO_TO` and the signer, and sets a 180-day cookie plus a personal link.
