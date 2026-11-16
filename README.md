@@ -5,6 +5,7 @@ Static site plus one small Worker for the enquiry form. No build step, no framew
     ./
       wrangler.toml      Cloudflare config (Castle AgentIQ account, KV namespace already created)
       worker.js          Forms, NDA signing and the NDA-gated property schedule; everything else = static assets
+      portfolio-site/    Served only by the Worker, at https://portfolio.chg.global: the Vitae landing page moved from Netlify
       gated/             Served only by the Worker: portfolio-details.html (the property schedule) and nda.txt (agreement wording for emails)
       public/            the website
         index.html about.html portfolio.html nda.html privacy.html 404.html

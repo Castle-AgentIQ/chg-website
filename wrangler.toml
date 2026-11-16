@@ -9,7 +9,9 @@ account_id = "ef0da64eebdb2d5184dd7007e0b757af"
 # Custom domains (zone chg.global is on this account since 7 Sep 2026)
 routes = [
   { pattern = "chg.global", custom_domain = true },
-  { pattern = "www.chg.global", custom_domain = true }
+  { pattern = "www.chg.global", custom_domain = true },
+  # The Vitae portfolio landing page, moved here from Netlify unchanged (portfolio-site/)
+  { pattern = "portfolio.chg.global", custom_domain = true }
 ]
 
 [assets]
@@ -17,13 +19,16 @@ directory = "./public"
 binding = "ASSETS"
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
-# The Worker handles the API and the NDA-gated portfolio schedule; everything else is a static asset.
-run_worker_first = ["/api/*", "/portfolio/details"]
+# The Worker runs first for every request: it serves portfolio.chg.global from portfolio-site/,
+# handles the API and the NDA-gated portfolio schedule, and passes everything else on chg.global
+# to the static assets unchanged. (Asset paths cannot be matched by hostname, so the Worker must
+# see every request for portfolio.chg.global's "/" not to fall through to chg.global's home page.)
+run_worker_first = true
 
 # Files the Worker imports as text: the gated property schedule and the NDA wording (in ./gated/)
 [[rules]]
 type = "Text"
-globs = ["gated/**/*.html", "gated/**/*.txt"]
+globs = ["gated/**/*.html", "gated/**/*.txt", "portfolio-site/**/*.html"]
 fallthrough = true
 
 # Enquiry + NDA storage (namespace already created on the Castle AgentIQ account)

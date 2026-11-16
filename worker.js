@@ -9,10 +9,21 @@
    GET  /api/enquiries?key=ADMIN_KEY   → last 100 enquiries as JSON
    GET  /api/ndas?key=ADMIN_KEY        → last 100 signed NDAs as JSON
    GET  /api/health?key=ADMIN_KEY      → which integrations are configured (no secret values)
+
+   portfolio.chg.global     → the Vitae portfolio landing page, moved from Netlify unchanged (portfolio-site/):
+                              "/" and "/index.html" the landing page, "/nda" and "/nda.html" the NDA page; its forms post to Formspree as before.
 */
 
 import detailsHtml from "./gated/portfolio-details.html";
 import ndaText from "./gated/nda.txt";
+import portfolioIndexHtml from "./portfolio-site/index.html";
+import portfolioNdaHtml from "./portfolio-site/nda.html";
+
+const PORTFOLIO_HOST = "portfolio.chg.global";
+const PORTFOLIO_PAGES = {
+  "/": portfolioIndexHtml, "/index.html": portfolioIndexHtml,
+  "/nda": portfolioNdaHtml, "/nda.html": portfolioNdaHtml
+};
 
 const ALLOWED_INTEREST = new Set(["portfolio", "selling", "investing", "other"]);
 const ALLOWED_OFFICE = new Set(["sussex", "dubai", "oslo"]);
@@ -34,6 +45,8 @@ export default {
     const { pathname } = url;
     const get = request.method === "GET", post = request.method === "POST";
 
+    if (url.hostname === PORTFOLIO_HOST) return servePortfolio(request, pathname);
+
     if (pathname === "/api/enquiry" && post) return handleEnquiry(request, env);
     if (pathname === "/api/nda" && post) return handleNda(request, env, url);
     if (pathname === "/portfolio/details") return handleDetails(request, env, url);
@@ -51,6 +64,22 @@ export default {
     return env.ASSETS.fetch(request);
   }
 };
+
+/* ---------- portfolio.chg.global: the landing page moved from Netlify ---------- */
+
+function servePortfolio(request, pathname) {
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return new Response("Method not allowed", { status: 405, headers: { Allow: "GET, HEAD" } });
+  }
+  const page = PORTFOLIO_PAGES[pathname];
+  if (!page) return Response.redirect("https://" + PORTFOLIO_HOST + "/", 302);
+  return new Response(request.method === "HEAD" ? null : page, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "public, max-age=300"
+    }
+  });
+}
 
 /* ---------- enquiry form ---------- */
 
